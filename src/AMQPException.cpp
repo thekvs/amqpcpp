@@ -8,11 +8,15 @@
 
 #include "AMQPcpp.h"
 
-AMQPException::AMQPException(string message) {
+namespace amqpcpp {
+
+AMQPException::AMQPException(std::string message)
+{
 	this->message= message;
 }
 
-AMQPException::AMQPException( amqp_rpc_reply_t * res) {
+AMQPException::AMQPException( amqp_rpc_reply_t * res)
+{
 	if( res->reply_type == AMQP_RESPONSE_LIBRARY_EXCEPTION) {
 		this->message = res->library_error ? strerror(res->library_error) : "end-of-stream";
 	}
@@ -49,10 +53,14 @@ AMQPException::AMQPException( amqp_rpc_reply_t * res) {
 	}
 }
 
-uint16_t AMQPException::getReplyCode() {
+uint16_t AMQPException::getReplyCode()
+{
 	return code;
 }
 
-string AMQPException::getMessage() {
+std::string AMQPException::getMessage()
+{
 	return message;
 }
+
+} // namespace

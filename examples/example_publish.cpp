@@ -2,13 +2,13 @@
 
 int main (int argc, char** argv) {
 
-
+	using namespace amqpcpp;
 
 	try {
 //		AMQP amqp;
 //		AMQP amqp(AMQPDEBUG);
 	
-		AMQP amqp("123123:akalend@localhost:5673/private");		// all connect string
+		AMQP amqp("123123:akalend@localhost:5673/private");		// all connect std::string
 
 		AMQPExchange * ex = amqp.createExchange("e");
 		ex->Declare("e", "fanout");
@@ -17,7 +17,7 @@ int main (int argc, char** argv) {
 		qu2->Declare();
 		qu2->Bind( "e", "");		
 
-		string ss = "message 1 ";
+		std::string ss = "message 1 ";
 		/* test very long message
 		ss = ss+ss+ss+ss+ss+ss+ss;
 		ss += ss+ss+ss+ss+ss+ss+ss;

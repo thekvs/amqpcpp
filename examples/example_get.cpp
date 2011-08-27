@@ -2,7 +2,7 @@
 
 int main () {
 
-
+	using namespace amqpcpp;
 
 	try {
 //		AMQP amqp("123123:akalend@localhost/private");
@@ -17,13 +17,13 @@ int main () {
 
 			AMQPMessage * m= qu2->getMessage();
 			
-			cout << "count: "<<  m->getMessageCount() << endl;											 
+			std::cout << "count: "<<  m->getMessageCount() << std::endl;											 
 			if (m->getMessageCount() > -1) {
 			
-			cout << "message\n"<< m->getMessage() << "\nmessage key: "<<  m->getRoutingKey() << endl;
-			cout << "exchange: "<<  m->getExchange() << endl;											
-			cout << "Content-type: "<< m->getHeader("Content-type") << endl;	
-			cout << "Content-encoding: "<< m->getHeader("Content-encoding") << endl;	
+			std::cout << "message\n"<< m->getMessage() << "\nmessage key: "<<  m->getRoutingKey() << std::endl;
+			std::cout << "exchange: "<<  m->getExchange() << std::endl;											
+			std::cout << "Content-type: "<< m->getHeader("Content-type") << std::endl;	
+			std::cout << "Content-encoding: "<< m->getHeader("Content-encoding") << std::endl;	
 			} else 
 				break;				
 						
