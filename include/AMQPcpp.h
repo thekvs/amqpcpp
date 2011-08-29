@@ -1,17 +1,6 @@
 #ifndef __AMQPCPP
 #define __AMQPCPP
 
-#define AMQPPORT 5672
-#define AMQPHOST "localhost"
-#define AMQPVHOST "/"
-#define AMQPLOGIN "guest"
-#define AMQPPSWD  "guest"
-
-#define AMQPDEBUG ":5673"
-
-#define HEADER_FOOTER_SIZE  8       //  7 bytes up front, then payload, then 1 byte footer
-#define FRAME_MAX           131072  // max lenght (size) of frame
-
 #define __STDC_FORMAT_MACROS
 
 #include <cstdlib>
@@ -34,6 +23,9 @@
 #include "amqp_framing.h"
 
 namespace amqpcpp {
+
+const int HEADER_FOOTER_SIZE = 8;      //  7 bytes up front, then payload, then 1 byte footer
+const int FRAME_MAX          = 131072; // max lenght (size) of frame
 
 enum {
     AMQP_AUTODELETE     = 1,
@@ -62,7 +54,7 @@ class AMQPException: public std::exception {
 public:
 
 
-    AMQPException(const char *file, int line, amqp_rpc_reply_t * res);
+    AMQPException(const char *file, int line, amqp_rpc_reply_t *res);
     AMQPException(const char *file, int line, const char *fmt, ...);
 
     virtual ~AMQPException() throw() {
@@ -229,21 +221,21 @@ private:
     void sendDeclareCommand();
     void sendDeleteCommand();
     void sendPurgeCommand();
-    void sendBindCommand(const char * exchange, const char * key);
-    void sendUnBindCommand(const char * exchange, const char * key);
+    void sendBindCommand(const char *exchange, const char *key);
+    void sendUnBindCommand(const char *exchange, const char *key);
     void sendGetCommand();
     void sendConsumeCommand();
     void sendCancelCommand();
     void sendAckCommand();
-    void setHeaders(amqp_basic_properties_t * p);
+    void setHeaders(amqp_basic_properties_t *p);
 };
 
 
 class AMQPExchange: public AMQPBase {
 public:
 
-    AMQPExchange(amqp_connection_state_t * cnn, int channelNum);
-    AMQPExchange(amqp_connection_state_t * cnn, int channelNum, std::string name);
+    AMQPExchange(amqp_connection_state_t *cnn, int channelNum);
+    AMQPExchange(amqp_connection_state_t *cnn, int channelNum, std::string name);
 
     void Declare();
     void Declare(std::string name);

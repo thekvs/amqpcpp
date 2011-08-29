@@ -1,14 +1,12 @@
-/*
- *  AMQP.cpp
- *  librabbitmq++
- *
- *  Created by Alexandre Kalendarev on 01.03.10.
- *
- */
-
 #include "AMQPcpp.h"
 
 namespace amqpcpp {
+
+static const int         AMQPPORT  = 5672;
+static const std::string AMQPHOST  = "localhost";
+static const std::string AMQPVHOST = "/";
+static const std::string AMQPLOGIN = "guest";
+static const std::string AMQPPSWD  = "guest";
 
 AMQP::AMQP()
 {
@@ -28,7 +26,8 @@ AMQP::~AMQP()
 {
     if (channels.size()) {
         std::vector<AMQPBase*>::iterator i;
-        for (i=channels.begin(); i!=channels.end(); i++) {
+
+        for (i = channels.begin(); i != channels.end(); i++) {
             delete *i;
         }
     }
@@ -47,11 +46,11 @@ AMQP::init()
 void
 AMQP::initDefault()
 {
-    host = std::string(AMQPHOST);
+    host = AMQPHOST;
     port = AMQPPORT;
-    vhost = std::string(AMQPVHOST);
-    user = std::string(AMQPLOGIN);
-    password = std::string(AMQPPSWD);
+    vhost = AMQPVHOST;
+    user = AMQPLOGIN;
+    password = AMQPPSWD;
 }
 
 void
@@ -70,13 +69,13 @@ AMQP::parseCnnString( std::string cnnString )
     case 0:
         hostPortStr.assign(cnnString, 1, cnnString.size()-1);
         AMQP::parseHostPort(hostPortStr);
-        user = std::string(AMQPLOGIN);
-        password = std::string(AMQPPSWD);
+        user = AMQPLOGIN;
+        password = AMQPPSWD;
         break;
     case -1:
         AMQP::parseHostPort(cnnString);
-        user = std::string(AMQPLOGIN);
-        password = std::string(AMQPPSWD);
+        user = AMQPLOGIN;
+        password = AMQPPSWD;
         break;
     default :
         hostPortStr.assign(cnnString, pos+1, cnnString.size()-pos+1);
@@ -95,11 +94,11 @@ AMQP::parseUserStr(std::string userString)
     switch (pos) {
     case 0:
         user.assign(userString, 1, userString.size()-1);
-        password=AMQPPSWD;
+        password = AMQPPSWD;
         break;
     case -1:
-        user=userString;
-        password=AMQPPSWD;
+        user = userString;
+        password = AMQPPSWD;
         break;
     default:
         user.assign(userString, pos+1, userString.size()+1-pos);
@@ -109,7 +108,7 @@ AMQP::parseUserStr(std::string userString)
 }
 
 void
-AMQP::parseHostPort(std::string hostPortString )
+AMQP::parseHostPort(std::string hostPortString)
 {
     size_t pos = hostPortString.find(':');
     std::string hostString;
@@ -122,7 +121,7 @@ AMQP::parseHostPort(std::string hostPortString )
     port  = AMQPPORT;
 
     if (pos == std::string::npos) {
-        if ( pos2 == std::string::npos) {
+        if (pos2 == std::string::npos) {
             host = hostPortString;
         } else {
             vhost.assign(hostPortString, pos2, hostPortString.size()-pos2);
@@ -139,7 +138,7 @@ AMQP::parseHostPort(std::string hostPortString )
         }
         port = atoi(portString.c_str());
     } else {
-        if ( pos2 == std::string::npos ) {
+        if (pos2 == std::string::npos ) {
             host.assign(hostPortString, 0, pos);
             portString.assign(hostPortString, pos+1, hostPortString.size()-pos+1);
         } else {
