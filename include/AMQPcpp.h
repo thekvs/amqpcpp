@@ -1,8 +1,6 @@
 #ifndef __AMQPCPP
 #define __AMQPCPP
 
-#define __STDC_FORMAT_MACROS
-
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
