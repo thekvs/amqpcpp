@@ -176,12 +176,10 @@ AMQP::sockConnect()
     cnn = amqp_new_connection();
     sockfd = amqp_open_socket(host.c_str(), port);
 
-    std::cerr << "DEBUG: " << host << ":" << port << std::endl;
     if (sockfd < 0) {
-        throw AMQPException("AMQP cannot create socket descriptor");
+        THROW_AMQP_EXC("AMQP cannot create socket descriptor");
     }
 
-    //std::cout << "sockfd="<< sockfd  << "  pid=" <<  getpid() <<std::endl;
     amqp_set_sockfd(cnn, sockfd);
 }
 
@@ -191,11 +189,10 @@ AMQP::login()
     amqp_rpc_reply_t res = amqp_login(cnn, vhost.c_str(), 0, FRAME_MAX, 0,
         AMQP_SASL_METHOD_PLAIN, user.c_str(), password.c_str());
 
-    if ( res.reply_type == AMQP_RESPONSE_NORMAL) {
-        return;
+    if (res.reply_type != AMQP_RESPONSE_NORMAL) {
+        THROW_AMQP_EXC("login failed: vhost=%s, user=%s, password=%s",
+            vhost.c_str(), user.c_str(), password.c_str());
     }
-
-    throw AMQPException(&res);
 }
 
 AMQPExchange*

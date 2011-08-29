@@ -68,7 +68,7 @@ void
 AMQPQueue::sendDeclareCommand()
 {
     if (!name.size()) {
-        throw AMQPException("the queue must to have the name");
+        THROW_AMQP_EXC("queue must to have the name");
     }
 
     amqp_bytes_t queue_name = amqp_cstring_bytes(name.c_str());
@@ -107,31 +107,25 @@ AMQPQueue::sendDeclareCommand()
 
     amqp_release_buffers(*cnn);
 
-    char error_message[256];
-    bzero(error_message, 256);
-
     if (res.reply_type == AMQP_RESPONSE_NONE) {
-        throw AMQPException("error the QUEUE.DECLARE command, response none");
+        THROW_AMQP_EXC("error in the QUEUE.DECLARE command, response is none");
     }
 
     if (res.reply.id == AMQP_CHANNEL_CLOSE_METHOD) {
         amqp_channel_close_t *err = (amqp_channel_close_t *)res.reply.decoded;
 
         int c_id = (int)err->class_id;
-        snprintf(error_message, sizeof(error_message),
-            "server error %u, message '%s' class=%d method=%u",
-            err->reply_code, (char*)err->reply_text.bytes,
-            c_id,err->method_id);
         opened = 0;
 
-        throw AMQPException(error_message);
+        THROW_AMQP_EXC("server error %u, message '%s' class=%d method=%u",
+            err->reply_code, (char*)err->reply_text.bytes,
+            c_id, err->method_id);
     } else if (res.reply.id == AMQP_QUEUE_DECLARE_OK_METHOD) {
         amqp_queue_declare_ok_t* data = (amqp_queue_declare_ok_t*) res.reply.decoded;
         count = data->message_count;
     } else {
-        snprintf(error_message, sizeof(error_message),
-            "error the Declare command  receive method=%d", res.reply.id);
-        throw AMQPException(error_message);
+        THROW_AMQP_EXC("error in the Declare command receive method=%d",
+            res.reply.id);
     }
 }
 
@@ -140,7 +134,7 @@ void
 AMQPQueue::Delete()
 {
     if (!name.size()) {
-        throw AMQPException("the name of queue not set");
+        THROW_AMQP_EXC("name of the queue is not set");
     }
 
     sendDeleteCommand();
@@ -178,7 +172,7 @@ void
 AMQPQueue::Purge()
 {
     if (!name.size()) {
-        throw AMQPException("the name of queue not set");
+        THROW_AMQP_EXC("name of the queue is not set");
     }
 
     sendPurgeCommand();
@@ -315,7 +309,6 @@ AMQPQueue::sendGetCommand()
     // 3932231 GET_OK
     // 1310760 CHANNEL_CLOSE
 
-    char error_message[256];
     amqp_frame_t frame;
 
     amqp_release_buffers(*cnn);
@@ -327,19 +320,17 @@ AMQPQueue::sendGetCommand()
     pmessage = new AMQPMessage(this);
 
     if (res.reply_type == AMQP_RESPONSE_NONE) {
-        throw AMQPException("error the Get command, response none");
+        THROW_AMQP_EXC("error in the Get command, response is none");
     }
 
     if (res.reply.id == AMQP_CHANNEL_CLOSE_METHOD) {
         amqp_channel_close_t *err = (amqp_channel_close_t *) res.reply.decoded;
 
-        snprintf(error_message, sizeof(error_message),
-            "server error %u, message '%s' class=%d method=%u ",
+        opened = 0;
+        THROW_AMQP_EXC("server error %u, message '%s' class=%d method=%u ",
             err->reply_code, (char*)err->reply_text.bytes,
             (int)err->class_id, err->method_id);
-        opened = 0;
 
-        throw AMQPException(error_message);
     } else if (res.reply.id == AMQP_BASIC_GET_EMPTY_METHOD) {
         pmessage->setMessageCount(-1);
         return;
@@ -367,9 +358,7 @@ AMQPQueue::sendGetCommand()
 
         pmessage->setMessageCount(data->message_count);
     } else {
-        snprintf(error_message, sizeof(error_message),
-            "error the Get command  receive method=%d", res.reply.id);
-        throw AMQPException(error_message);
+        THROW_AMQP_EXC("error in the Get command  receive method=%d", res.reply.id);
     }
 
     int               result;
@@ -382,7 +371,7 @@ AMQPQueue::sendGetCommand()
         result = amqp_simple_wait_frame(*cnn, &frame);
 
         if (result < 0) {
-            throw AMQPException(" read frame error");
+            THROW_AMQP_EXC("read frame error");
         }
 
         if (frame.frame_type == AMQP_FRAME_HEADER) {
@@ -419,7 +408,7 @@ void
 AMQPQueue::addEvent(AMQPEvents_e eventType, int (*event)(AMQPMessage*))
 {
     if (events.find(eventType) != events.end()) {
-        throw AMQPException("event allready exists");
+        THROW_AMQP_EXC("event allready exists");
     }
 
     events[eventType] = reinterpret_cast<int(*)(AMQPMessage *)>(event);
@@ -453,8 +442,6 @@ AMQPQueue::sendConsumeCommand()
     amqp_basic_consume_ok_t *consume_ok;
     amqp_bytes_t queueByte = amqp_cstring_bytes(name.c_str());
 
-    char error_message[256];
-
     /*
        amqp_basic_consume_ok_t * res = amqp_basic_consume( *cnn, channelNum,
        queueByte, consumer_tag,
@@ -484,15 +471,13 @@ AMQPQueue::sendConsumeCommand()
     amqp_rpc_reply_t res = amqp_simple_rpc(*cnn, channelNum, AMQP_BASIC_CONSUME_METHOD, replies, &s);
 
     if (res.reply_type == AMQP_RESPONSE_NONE) {
-        throw AMQPException("error the Consume command, response none");
+        THROW_AMQP_EXC("error in the Consume command, response is none");
     } else if (res.reply.id == AMQP_CHANNEL_CLOSE_METHOD) {
         amqp_channel_close_t *err = (amqp_channel_close_t*)res.reply.decoded;
-        snprintf(error_message, sizeof(error_message),
-            "server error %u, message '%s' class=%d method=%u ",
-            err->reply_code, (char*)err->reply_text.bytes, (int)err->class_id, err->method_id);
         opened = 0;
-
-        throw AMQPException(error_message);
+        THROW_AMQP_EXC("server error %u, message '%s' class=%d method=%u ",
+            err->reply_code, (char*)err->reply_text.bytes, (int)err->class_id,
+            err->method_id);
     } else if (res.reply.id == AMQP_BASIC_CANCEL_OK_METHOD) {
         return;//cancel ok
     } else if (res.reply.id == AMQP_BASIC_CONSUME_OK_METHOD) {
@@ -545,11 +530,11 @@ AMQPQueue::sendConsumeCommand()
         result = amqp_simple_wait_frame(*cnn, &frame);
 
         if (result < 0) {
-            throw AMQPException("The returned read frame is invalid");
+            THROW_AMQP_EXC("invalid frame");
         }
 
         if (frame.frame_type != AMQP_FRAME_HEADER) {
-            throw AMQPException("The returned frame type is invalid");
+            THROW_AMQP_EXC("invalid frame type: %i", frame.frame_type);
         }
 
         amqp_basic_properties_t *p = (amqp_basic_properties_t*)(frame.payload.properties.decoded);
@@ -573,7 +558,7 @@ AMQPQueue::sendConsumeCommand()
             }
 
             if (frame.frame_type != AMQP_FRAME_BODY) {
-                throw AMQPException("The returned frame has no body");
+                THROW_AMQP_EXC("returned frame has no body");
             }
 
             frame_len = frame.payload.body_fragment.len;
@@ -699,7 +684,7 @@ void
 AMQPQueue::Ack()
 {
     if (!delivery_tag) {
-        throw AMQPException("the delivery tag not set");
+        THROW_AMQP_EXC("delivery tag is not set");
     }
 
     sendAckCommand();

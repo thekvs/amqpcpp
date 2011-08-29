@@ -9,19 +9,6 @@
 
 #define AMQPDEBUG ":5673"
 
-#define AMQP_AUTODELETE     1
-#define AMQP_DURABLE        2
-#define AMQP_PASSIVE        4
-#define AMQP_MANDATORY      8
-#define AMQP_IMMIDIATE      16
-#define AMQP_IFUNUSED       32
-#define AMQP_EXCLUSIVE      64
-#define AMQP_NOWAIT         128
-#define AMQP_NOACK          256
-#define AMQP_NOLOCAL        512
-#define AMQP_MULTIPLE       1024
-
-
 #define HEADER_FOOTER_SIZE  8       //  7 bytes up front, then payload, then 1 byte footer
 #define FRAME_MAX           131072  // max lenght (size) of frame
 
@@ -30,6 +17,7 @@
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
+#include <cstdarg>
 
 #include <unistd.h>
 #include <stdint.h>
@@ -40,12 +28,26 @@
 #include <string>
 #include <map>
 #include <memory>
-#include <algorithm>
+#include <exception>
 
 #include "amqp.h"
 #include "amqp_framing.h"
 
 namespace amqpcpp {
+
+enum {
+    AMQP_AUTODELETE     = 1,
+    AMQP_DURABLE        = 2,
+    AMQP_PASSIVE        = 4,
+    AMQP_MANDATORY      = 8,
+    AMQP_IMMIDIATE      = 16,
+    AMQP_IFUNUSED       = 32,
+    AMQP_EXCLUSIVE      = 64,
+    AMQP_NOWAIT         = 128,
+    AMQP_NOACK          = 256,
+    AMQP_NOLOCAL        = 512,
+    AMQP_MULTIPLE       = 1024
+};
 
 class AMQPQueue;
 
@@ -56,20 +58,38 @@ enum AMQPEvents_e {
     AMQP_CLOSE_CHANNEL
 };
 
-class AMQPException {
+class AMQPException: public std::exception {
 public:
 
-    AMQPException(std::string message);
-    AMQPException(amqp_rpc_reply_t *res);
 
-    std::string getMessage();
-    uint16_t getReplyCode();
+    AMQPException(const char *file, int line, amqp_rpc_reply_t * res);
+    AMQPException(const char *file, int line, const char *fmt, ...);
+
+    virtual ~AMQPException() throw() {
+        free(msg);
+    };
+
+    virtual const char *what() const throw() {
+        return msg == NULL ? "" : msg;
+    }
 
 private:
 
-    std::string message;
-    int         code;
+    char  buff[1024];
+    char *msg;
+    char  line_str[sizeof("2147483647")];
+
+    const char* sanitize_file_name(const char *file);
+    void append_position(const char *file, int line);
 };
+
+#define THROW_AMQP_EXC(args...)  (throw AMQPException(__FILE__, __LINE__, args))
+
+#define THROW_AMQP_EXC_IF_FAILED(status, args...) do {  \
+    if (!(status)) {                                    \
+        throw AMQPException(__FILE__, __LINE__, args);  \
+    }                                                   \
+} while(0)
 
 class AMQPMessage {
 public:
@@ -134,16 +154,16 @@ public:
 
 protected:
 
-    std::string name;
-    short parms;
     amqp_connection_state_t *cnn;
-    int channelNum;
+
+    std::string  name;
+    short        parms;
+    int          channelNum;
     AMQPMessage *pmessage;
+    short        opened;
 
-    short opened;
-
-    void checkReply(amqp_rpc_reply_t * res);
-    void checkClosed(amqp_rpc_reply_t * res);
+    void checkReply(amqp_rpc_reply_t *res);
+    void checkClosed(amqp_rpc_reply_t *res);
     void openChannel();
 };
 

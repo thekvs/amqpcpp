@@ -29,8 +29,8 @@ int main () {
 						
 							
 		}	
-	} catch (AMQPException e) {
-		std::cout << e.getMessage() << std::endl;
+	} catch (const AMQPException &e) {
+		std::cerr << e.what() << std::endl;
 	}
 
 	return 0;					

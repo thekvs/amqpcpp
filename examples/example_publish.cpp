@@ -41,8 +41,8 @@ int main (int argc, char** argv) {
 			qu->Cancel(   amqp_cstring_bytes(argv[1]) );
 		}												
 						
-	} catch (AMQPException e) {
-		std::cout << e.getMessage() << std::endl;
+	} catch (const AMQPException &e) {
+		std::cerr << e.what() << std::endl;
 	}
 
 	return 0;

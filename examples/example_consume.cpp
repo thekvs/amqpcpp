@@ -24,8 +24,11 @@ onMessage(AMQPMessage *message)
     i++;
 
     std::cout << std::endl;
-    std::cout << "#" << i << " tag=" << message->getDeliveryTag() << " content-type:"<< message->getHeader("Content-type");
-    std::cout << " encoding:"<< message->getHeader("Content-encoding") << " mode=" << message->getHeader("Delivery-mode") << std::endl;
+
+    std::cout << "#" << i << " tag=" << message->getDeliveryTag() << std::endl;
+    std::cout << "Content-type: " << message->getHeader("Content-type") << std::endl;
+    std::cout << "Encoding: "<< message->getHeader("Content-encoding") << std::endl;
+    std::cout << "Delivery-mode: " << message->getHeader("Delivery-mode") << std::endl;
     std::cout << "========================" << std::endl;
 
     /*
@@ -57,8 +60,8 @@ int main () {
 
         queue->Consume(AMQP_NOACK);
 
-    } catch (AMQPException e) {
-        std::cout << e.getMessage() << std::endl;
+    } catch (const AMQPException &e) {
+        std::cerr << "Error: " << e.what() << std::endl;
     }
 
     return 0;

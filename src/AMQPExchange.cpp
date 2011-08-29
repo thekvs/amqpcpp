@@ -2,7 +2,7 @@
 
 namespace amqpcpp {
 
-AMQPExchange::AMQPExchange(amqp_connection_state_t * cnn, int channelNum)
+AMQPExchange::AMQPExchange(amqp_connection_state_t *cnn, int channelNum)
 {
     this->cnn = cnn;
     this->channelNum = channelNum;
@@ -10,7 +10,8 @@ AMQPExchange::AMQPExchange(amqp_connection_state_t * cnn, int channelNum)
     openChannel();
 }
 
-AMQPExchange::AMQPExchange(amqp_connection_state_t * cnn, int channelNum, std::string name)
+AMQPExchange::AMQPExchange(amqp_connection_state_t *cnn, int channelNum,
+    std::string name)
 {
     this->cnn = cnn;
     this->channelNum = channelNum;
@@ -18,8 +19,6 @@ AMQPExchange::AMQPExchange(amqp_connection_state_t * cnn, int channelNum, std::s
 
     openChannel();
 }
-
-//Declare
 
 void
 AMQPExchange::Declare()
@@ -99,17 +98,15 @@ AMQPExchange::checkType()
     }
 
     if (isErr) {
-        throw AMQPException("the type of AMQPExchange must be direct | fanout | topic" );
+        THROW_AMQP_EXC("type of the exchange must be direct|fanout|topic");
     }
 }
-
-// Delete
 
 void
 AMQPExchange::Delete()
 {
     if (!name.size()) {
-        throw AMQPException("the name of exchange not set");
+        THROW_AMQP_EXC("name of the exchange not set");
     }
 
     sendDeleteCommand();
@@ -149,13 +146,11 @@ AMQPExchange::sendDeleteCommand()
     AMQPBase::checkReply(&res);
 }
 
-// Bind
-
 void
 AMQPExchange::Bind(std::string name)
 {
     if (type != "fanout") {
-        throw AMQPException("key is NULL, this using only for the type fanout" );
+        THROW_AMQP_EXC("key is NULL, it can only be used for the fanout type");
     }
 
     sendBindCommand(name.c_str(), NULL);
@@ -312,4 +307,5 @@ AMQPExchange::setHeader(std::string name, std::string value)
     sHeaders.insert(std::pair<std::string, std::string>(std::string(name), value));
 }
 
-}
+} // namespace
+
