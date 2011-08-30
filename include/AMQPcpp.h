@@ -93,10 +93,12 @@ public:
     void addHeader(std::string name, amqp_bytes_t *value);
     void addHeader(std::string name, uint64_t *value);
     void addHeader(std::string name, uint8_t *value);
+
     std::string getHeader(std::string name);
 
     void setConsumerTag(amqp_bytes_t consumer_tag);
     void setConsumerTag(std::string consumer_tag);
+
     std::string getConsumerTag();
 
     void setMessageCount(int count);
@@ -104,10 +106,12 @@ public:
 
     void setExchange(amqp_bytes_t exchange);
     void setExchange(std::string exchange);
+
     std::string getExchange();
 
     void setRoutingKey(amqp_bytes_t routing_key);
     void setRoutingKey(std::string routing_key);
+
     std::string getRoutingKey();
 
     uint32_t getDeliveryTag();
@@ -139,7 +143,7 @@ public:
     std::string getName();
     void closeChannel();
     void reopen();
-    void setName(const char * name);
+    void setName(const char *name);
     void setName(std::string name);
 
 protected:
@@ -156,6 +160,8 @@ protected:
     void checkClosed(amqp_rpc_reply_t *res);
     void openChannel();
 };
+
+typedef int (*AMQPEventFunc)(AMQPMessage*, void*);
 
 class AMQPQueue: public AMQPBase  {
 public:
@@ -200,13 +206,31 @@ public:
     void setConsumerTag(std::string consumer_tag);
     amqp_bytes_t getConsumerTag();
 
-    void addEvent(AMQPEvents_e eventType, int (*event)(AMQPMessage*));
+    void addEvent(AMQPEvents_e eventType, AMQPEventFunc func, void *ctx);
 
     ~AMQPQueue();
 
 protected:
 
-    typedef std::map<AMQPEvents_e, int(*)(AMQPMessage *)> events_map;
+    struct AMQPCallback {
+        
+        AMQPEventFunc  func;
+        void          *ctx;
+
+        AMQPCallback(AMQPEventFunc _func, void *_ctx):
+            func(_func),
+            ctx(_ctx)
+        {
+        }
+
+        AMQPCallback():
+            func(NULL),
+            ctx(NULL)
+        {
+        }
+    };
+
+    typedef std::map<AMQPEvents_e, AMQPCallback> events_map;
 
     events_map   events;
     amqp_bytes_t consumer_tag;
@@ -302,9 +326,10 @@ private:
     int sockfd;
     int channelNumber;
 
-    amqp_connection_state_t cnn;
     AMQPExchange *exchange;
 
+    amqp_connection_state_t  cnn;
+    
     std::vector<AMQPBase*> channels;
 
 private:

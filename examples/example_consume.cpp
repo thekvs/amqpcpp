@@ -1,11 +1,11 @@
 #include "AMQPcpp.h"
 
-static int i;
-
 using namespace amqpcpp;
 
+static int i;
+
 int
-onCancel(AMQPMessage * message )
+onCancel(AMQPMessage *message, void *ctx)
 {
     std::cout << "cancel tag="<< message->getDeliveryTag() << std::endl;
 
@@ -13,8 +13,10 @@ onCancel(AMQPMessage * message )
 }
 
 int
-onMessage(AMQPMessage *message)
+onMessage(AMQPMessage *message, void *ctx)
 {
+    std::string *msg = static_cast<std::string*>(ctx);
+
     const char *data = message->getMessage();
 
     if (data) {
@@ -25,7 +27,8 @@ onMessage(AMQPMessage *message)
 
     std::cout << std::endl;
 
-    std::cout << "#" << i << " tag=" << message->getDeliveryTag() << std::endl;
+    std::cout << *msg << " #" << i << ", tag = " << message->getDeliveryTag() << std::endl;
+
     std::cout << "Content-type: " << message->getHeader("Content-type") << std::endl;
     std::cout << "Encoding: "<< message->getHeader("Content-encoding") << std::endl;
     std::cout << "Delivery-mode: " << message->getHeader("Delivery-mode") << std::endl;
@@ -41,12 +44,10 @@ onMessage(AMQPMessage *message)
     return 0;
 };
 
-
-int main () {
-
+int
+main()
+{
     try {
-        //		AMQP amqp("123123:akalend@localhost/private");
-
         AMQP amqp("guest:guest@127.0.0.1:5672/");
 
         AMQPQueue *queue = amqp.createQueue();
@@ -55,8 +56,10 @@ int main () {
         queue->Bind("amq.direct", "fast_check.key");
         queue->setConsumerTag("tag_123");
 
-        queue->addEvent(AMQP_MESSAGE, onMessage);
-        queue->addEvent(AMQP_CANCEL, onCancel);
+        std::string msg = "Message";
+
+        queue->addEvent(AMQP_MESSAGE, onMessage, &msg);
+        queue->addEvent(AMQP_CANCEL, onCancel, &msg);
 
         queue->Consume(AMQP_NOACK);
 
@@ -65,6 +68,4 @@ int main () {
     }
 
     return 0;
-
 }
-

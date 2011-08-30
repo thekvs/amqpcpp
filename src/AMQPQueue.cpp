@@ -405,13 +405,13 @@ AMQPQueue::sendGetCommand()
 }
 
 void
-AMQPQueue::addEvent(AMQPEvents_e eventType, int (*event)(AMQPMessage*))
+AMQPQueue::addEvent(AMQPEvents_e eventType, AMQPEventFunc func, void *ctx)
 {
     if (events.find(eventType) != events.end()) {
         THROW_AMQP_EXC("event allready exists");
     }
 
-    events[eventType] = reinterpret_cast<int(*)(AMQPMessage *)>(event);
+    events[eventType] = AMQPCallback(func, ctx);
 }
 
 void
@@ -509,7 +509,9 @@ AMQPQueue::sendConsumeCommand()
         if (frame.payload.method.id == AMQP_BASIC_CANCEL_OK_METHOD) {
             events_map::iterator event_it = events.find(AMQP_CANCEL);
             if (event_it != events.end()) {
-                (event_it->second)(pmessage);
+                AMQPEventFunc func = event_it->second.func;
+                void *ctx = event_it->second.ctx;
+                (*func)(pmessage, ctx);
             }
             break;
         }
@@ -573,10 +575,14 @@ AMQPQueue::sendConsumeCommand()
 
         pmessage->setMessage(&tmp[0], tmp.size());
 
-        events_map::iterator event = events.find(AMQP_MESSAGE);
+        events_map::iterator event_it = events.find(AMQP_MESSAGE);
 
-        if (event != events.end()) {
-            int rc = (event->second)(pmessage);
+        if (event_it != events.end()) {
+            AMQPEventFunc func = event_it->second.func;
+            void *ctx = event_it->second.ctx;
+
+            int rc = (*func)(pmessage, ctx);
+
             if (rc != 0) {
                 break;
             }
