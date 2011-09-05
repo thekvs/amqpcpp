@@ -17,7 +17,7 @@ MARK_AS_ADVANCED(RABBITMQ_LIBRARY)
 
 # handle the QUIETLY and REQUIRED arguments and set RABBITMQ_FOUND to TRUE if 
 # all listed variables are TRUE
-INCLUDE("/usr/share/cmake-2.8/Modules/FindPackageHandleStandardArgs.cmake")
+INCLUDE(FindPackageHandleStandardArgs)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(RABBITMQ DEFAULT_MSG RABBITMQ_LIBRARY RABBITMQ_INCLUDE_DIR)
 
 IF(RABBITMQ_FOUND)
