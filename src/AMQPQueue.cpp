@@ -340,21 +340,17 @@ AMQPQueue::sendGetCommand()
         delivery_tag = data->delivery_tag;
         pmessage->setDeliveryTag(data->delivery_tag);
 
+        std::string s;
+
         amqp_bytes_t exName = data->exchange;
 
-        char *dst = (char *)malloc(exName.len + 1);
-        strncpy(dst, (const char *)exName.bytes, exName.len);
-        *(dst+exName.len) = '\0';
-        pmessage->setExchange(dst);
-        free(dst);
+        s.assign(static_cast<const char*>(exName.bytes), exName.len);
+        pmessage->setExchange(s);
 
         amqp_bytes_t routingKey = data->routing_key;
 
-        dst = (char *)malloc(routingKey.len+1);
-        strncpy(dst, (const char *)routingKey.bytes, routingKey.len);
-        *(dst+routingKey.len) = '\0';
-        pmessage->setRoutingKey(dst);
-        free(dst);
+        s.assign(static_cast<const char*>(routingKey.bytes), routingKey.len);
+        pmessage->setRoutingKey(s);
 
         pmessage->setMessageCount(data->message_count);
     } else {
