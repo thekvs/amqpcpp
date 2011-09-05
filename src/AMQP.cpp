@@ -15,7 +15,7 @@ AMQP::AMQP()
     AMQP::connect();
 };
 
-AMQP::AMQP(std::string cnnStr)
+AMQP::AMQP(const std::string &cnnStr)
 {
     AMQP::init();
     AMQP::parseCnnString(cnnStr);
@@ -25,10 +25,13 @@ AMQP::AMQP(std::string cnnStr)
 AMQP::~AMQP()
 {
     if (channels.size()) {
-        std::vector<AMQPBase*>::iterator i;
+        std::vector<AMQPBase*>::iterator cur_it, end_it;
 
-        for (i = channels.begin(); i != channels.end(); i++) {
-            delete *i;
+        cur_it = channels.begin();
+        end_it = channels.end();
+
+        for (; cur_it != end_it; ++cur_it) {
+            delete *cur_it;
         }
     }
 
@@ -54,7 +57,7 @@ AMQP::initDefault()
 }
 
 void
-AMQP::parseCnnString( std::string cnnString )
+AMQP::parseCnnString(const std::string &cnnString)
 {
     if (!cnnString.size()) {
         AMQP::initDefault();
@@ -87,7 +90,7 @@ AMQP::parseCnnString( std::string cnnString )
 }
 
 void
-AMQP::parseUserStr(std::string userString)
+AMQP::parseUserStr(const std::string &userString)
 {
     int pos = userString.find(':');
 
@@ -108,7 +111,7 @@ AMQP::parseUserStr(std::string userString)
 }
 
 void
-AMQP::parseHostPort(std::string hostPortString)
+AMQP::parseHostPort(const std::string &hostPortString)
 {
     size_t pos = hostPortString.find(':');
     std::string hostString;
@@ -198,14 +201,14 @@ AMQPExchange*
 AMQP::createExchange()
 {
     channelNumber++;
-    AMQPExchange *exchange = new AMQPExchange(&cnn,channelNumber);
+    AMQPExchange *exchange = new AMQPExchange(&cnn, channelNumber);
     channels.push_back(dynamic_cast<AMQPBase*>(exchange));
 
     return exchange;
 }
 
 AMQPExchange*
-AMQP::createExchange(std::string name)
+AMQP::createExchange(const std::string &name)
 {
     channelNumber++;
     AMQPExchange *exchange = new AMQPExchange(&cnn,channelNumber,name);
@@ -225,7 +228,7 @@ AMQP::createQueue()
 }
 
 AMQPQueue*
-AMQP::createQueue(std::string name)
+AMQP::createQueue(const std::string &name)
 {
     channelNumber++;
     AMQPQueue *queue = new AMQPQueue(&cnn,channelNumber,name);

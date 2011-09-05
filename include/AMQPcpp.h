@@ -59,8 +59,8 @@ public:
         free(msg);
     };
 
-    virtual const char *what() const throw() {
-        return msg == NULL ? "" : msg;
+    virtual const char* what() const throw() {
+        return (msg == NULL ? "" : msg);
     }
 
 private:
@@ -88,16 +88,18 @@ public:
     ~AMQPMessage();
 
     void setMessage(const char *data, size_t size);
-    const char* getMessage();
+    const std::string& getMessage() const;
 
-    void addHeader(std::string name, amqp_bytes_t *value);
-    void addHeader(std::string name, uint64_t *value);
-    void addHeader(std::string name, uint8_t *value);
+    void addHeader(const std::string &name, amqp_bytes_t *value);
+    void addHeader(const std::string &name, uint64_t *value);
+    void addHeader(const std::string &name, uint8_t *value);
 
-    std::string getHeader(std::string name);
+    std::string getHeader(const std::string &name);
+
+    bool hasHeader(const std::string &name) const;
 
     void setConsumerTag(amqp_bytes_t consumer_tag);
-    void setConsumerTag(std::string consumer_tag);
+    void setConsumerTag(const std::string &consumer_tag);
 
     std::string getConsumerTag();
 
@@ -105,12 +107,12 @@ public:
     int getMessageCount();
 
     void setExchange(amqp_bytes_t exchange);
-    void setExchange(std::string exchange);
+    void setExchange(const std::string &exchange);
 
     std::string getExchange();
 
     void setRoutingKey(amqp_bytes_t routing_key);
-    void setRoutingKey(std::string routing_key);
+    void setRoutingKey(const std::string &routing_key);
 
     std::string getRoutingKey();
 
@@ -138,13 +140,15 @@ class AMQPBase {
 public:
 
     ~AMQPBase();
+
     int getChannelNum();
     void setParam(short param);
     std::string getName();
     void closeChannel();
     void reopen();
+
     void setName(const char *name);
-    void setName(std::string name);
+    void setName(const std::string &name);
 
 protected:
 
@@ -170,18 +174,18 @@ public:
     AMQPQueue(amqp_connection_state_t *cnn, int channelNum, std::string name);
 
     void Declare();
-    void Declare(std::string name);
-    void Declare(std::string name, short parms);
+    void Declare(const std::string &name);
+    void Declare(const std::string &name, short parms);
 
     void Delete();
-    void Delete(std::string name);
+    void Delete(const std::string &name);
 
     void Purge();
-    void Purge(std::string name);
+    void Purge(const std::string &name);
 
-    void Bind(std::string exchangeName, std::string key);
+    void Bind(const std::string &exchangeName, const std::string &key);
 
-    void unBind(std::string exchangeName, std::string key);
+    void unBind(const std::string &exchangeName, const std::string &key);
 
     void Get();
     void Get(short param);
@@ -190,7 +194,7 @@ public:
     void Consume(short param);
 
     void Cancel(amqp_bytes_t consumer_tag);
-    void Cancel(std::string consumer_tag);
+    void Cancel(const std::string &consumer_tag);
 
     void Ack();
     void Ack(uint32_t delivery_tag);
@@ -203,7 +207,7 @@ public:
         return count;
     }
 
-    void setConsumerTag(std::string consumer_tag);
+    void setConsumerTag(const std::string &consumer_tag);
     amqp_bytes_t getConsumerTag();
 
     void addEvent(AMQPEvents_e eventType, AMQPEventFunc func, void *ctx);
@@ -257,30 +261,35 @@ class AMQPExchange: public AMQPBase {
 public:
 
     AMQPExchange(amqp_connection_state_t *cnn, int channelNum);
-    AMQPExchange(amqp_connection_state_t *cnn, int channelNum, std::string name);
+    AMQPExchange(amqp_connection_state_t *cnn, int channelNum,
+        const std::string &name);
 
     void Declare();
-    void Declare(std::string name);
-    void Declare(std::string name, std::string type);
-    void Declare(std::string name, std::string type, short parms);
+    void Declare(const std::string &name);
+    void Declare(const std::string &name, const std::string &type);
+    void Declare(const std::string &name, const std::string &type,
+        short parms);
 
     void Delete();
-    void Delete(std::string name);
+    void Delete(const std::string &name);
 
-    void Bind(std::string queueName);
-    void Bind(std::string queueName, std::string key);
+    void Bind(const std::string &queueName);
+    void Bind(const std::string &queueName, const std::string &key);
 
-    void Publish(std::string message, std::string key);
+    void Publish(const std::string &message, const std::string &key);
 
-    void setHeader(std::string name, int value);
-    void setHeader(std::string name, std::string value);
+    void setHeader(const std::string &name, int value);
+    void setHeader(const std::string &name, const std::string &value);
 
 private:
 
     std::string type;
 
-    std::map<std::string, std::string> sHeaders;
-    std::map<std::string, int>         iHeaders;
+    typedef std::map<std::string, std::string> sHeaders_map;
+    typedef std::map<std::string, int>         iHeaders_map;
+
+    sHeaders_map sHeaders;
+    iHeaders_map iHeaders;
 
 private:
 
@@ -302,14 +311,14 @@ class AMQP {
 public:
 
     AMQP();
-    AMQP(std::string cnnStr);
+    AMQP(const std::string &cnnStr);
     ~AMQP();
 
     AMQPExchange* createExchange();
-    AMQPExchange* createExchange(std::string name);
+    AMQPExchange* createExchange(const std::string &name);
 
     AMQPQueue* createQueue();
-    AMQPQueue* createQueue(std::string name);
+    AMQPQueue* createQueue(const std::string &name);
 
     void printConnect();
     void closeChannel();
@@ -339,9 +348,9 @@ private:
     void init();
     void initDefault();
     void connect();
-    void parseCnnString(std::string cnnString);
-    void parseHostPort(std::string hostPortString);
-    void parseUserStr(std::string userString);
+    void parseCnnString(const std::string &cnnString);
+    void parseHostPort(const std::string &hostPortString);
+    void parseUserStr(const std::string &userString);
     void sockConnect();
     void login();
 };

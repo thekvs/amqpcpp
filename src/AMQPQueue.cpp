@@ -47,7 +47,7 @@ AMQPQueue::Declare()
 }
 
 void
-AMQPQueue::Declare(std::string name)
+AMQPQueue::Declare(const std::string &name)
 {
     this->parms = AMQP_AUTODELETE;
     this->name = name;
@@ -56,7 +56,7 @@ AMQPQueue::Declare(std::string name)
 }
 
 void
-AMQPQueue::Declare(std::string name, short parms)
+AMQPQueue::Declare(const std::string &name, short parms)
 {
     this->parms = parms;
     this->name = name;
@@ -141,7 +141,7 @@ AMQPQueue::Delete()
 }
 
 void
-AMQPQueue::Delete(std::string name)
+AMQPQueue::Delete(const std::string &name)
 {
     this->name = name;
     sendDeleteCommand();
@@ -179,7 +179,7 @@ AMQPQueue::Purge()
 }
 
 void
-AMQPQueue::Purge(std::string name)
+AMQPQueue::Purge(const std::string &name)
 {
     this->name = name;
 
@@ -207,7 +207,7 @@ AMQPQueue::sendPurgeCommand()
 
 // Bind command /* 50, 20; 3276820 */
 void
-AMQPQueue::Bind(std::string name, std::string key)
+AMQPQueue::Bind(const std::string &name, const std::string &key)
 {
     sendBindCommand(name.c_str(), key.c_str());
 }
@@ -239,7 +239,7 @@ AMQPQueue::sendBindCommand(const char *exchange, const char *key)
 
 // UnBind command /* 50, 50; 3276850 */
 void
-AMQPQueue::unBind(std::string name, std::string key)
+AMQPQueue::unBind(const std::string &name, const std::string &key)
 {
     sendUnBindCommand(name.c_str(), key.c_str());
 }
@@ -431,7 +431,7 @@ AMQPQueue::Consume(short parms)
 }
 
 void
-AMQPQueue::setConsumerTag(std::string consumer_tag)
+AMQPQueue::setConsumerTag(const std::string &consumer_tag)
 {
     this->consumer_tag = amqp_cstring_bytes(consumer_tag.c_str());
 }
@@ -652,7 +652,7 @@ AMQPQueue::setHeaders(amqp_basic_properties_t *p)
 }
 
 void
-AMQPQueue::Cancel(std::string consumer_tag)
+AMQPQueue::Cancel(const std::string &consumer_tag)
 {
     this->consumer_tag = amqp_cstring_bytes(consumer_tag.c_str());
 

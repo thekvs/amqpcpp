@@ -24,10 +24,10 @@ AMQPMessage::setMessage(const char *ptr, size_t size)
     data.assign(ptr, size);
 }
 
-const char*
-AMQPMessage::getMessage()
+const std::string&
+AMQPMessage::getMessage() const
 {
-    return data.c_str();
+    return data;
 }
 
 std::string
@@ -43,7 +43,7 @@ AMQPMessage::setConsumerTag(amqp_bytes_t consumer_tag)
 }
 
 void
-AMQPMessage::setConsumerTag(std::string consumer_tag)
+AMQPMessage::setConsumerTag(const std::string &consumer_tag)
 {
     this->consumer_tag = consumer_tag;
 }
@@ -81,7 +81,7 @@ AMQPMessage::setExchange(amqp_bytes_t exchange)
 }
 
 void
-AMQPMessage::setExchange(std::string exchange)
+AMQPMessage::setExchange(const std::string &exchange)
 {
     this->exchange = exchange;
 }
@@ -101,7 +101,7 @@ AMQPMessage::setRoutingKey(amqp_bytes_t routing_key)
 }
 
 void
-AMQPMessage::setRoutingKey(std::string routing_key)
+AMQPMessage::setRoutingKey(const std::string &routing_key)
 {
     this->routing_key = routing_key;
 }
@@ -113,7 +113,7 @@ AMQPMessage::getRoutingKey()
 }
 
 void
-AMQPMessage::addHeader(std::string name, amqp_bytes_t *value)
+AMQPMessage::addHeader(const std::string &name, amqp_bytes_t *value)
 {
     std::string svalue;
 
@@ -122,7 +122,7 @@ AMQPMessage::addHeader(std::string name, amqp_bytes_t *value)
 }
 
 void
-AMQPMessage::addHeader(std::string name, uint64_t *value)
+AMQPMessage::addHeader(const std::string &name, uint64_t *value)
 {
     char ivalue[32];
 
@@ -132,7 +132,7 @@ AMQPMessage::addHeader(std::string name, uint64_t *value)
 }
 
 void
-AMQPMessage::addHeader(std::string name, uint8_t *value)
+AMQPMessage::addHeader(const std::string &name, uint8_t *value)
 {
     char ivalue[4];
 
@@ -142,7 +142,7 @@ AMQPMessage::addHeader(std::string name, uint8_t *value)
 }
 
 std::string
-AMQPMessage::getHeader(std::string name)
+AMQPMessage::getHeader(const std::string &name)
 {
     headers_map::iterator header_it = headers.find(name);
 
@@ -151,6 +151,12 @@ AMQPMessage::getHeader(std::string name)
     } else {
         return header_it->second;
     }
+}
+
+bool
+AMQPMessage::hasHeader(const std::string &name) const
+{
+    return (headers.find(name) != headers.end());
 }
 
 AMQPQueue*

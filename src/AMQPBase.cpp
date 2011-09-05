@@ -71,7 +71,7 @@ std::string AMQPBase::getName()
     return name;
 }
 
-void AMQPBase::setName(std::string name)
+void AMQPBase::setName(const std::string &name)
 {
     this->name = name;
 }

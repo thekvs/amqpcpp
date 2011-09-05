@@ -5,9 +5,9 @@ using namespace amqpcpp;
 static int i;
 
 int
-onCancel(AMQPMessage *message, void *ctx)
+onCancel(AMQPMessage *message, void*)
 {
-    std::cout << "cancel tag="<< message->getDeliveryTag() << std::endl;
+    std::cout << "cancel tag=" << message->getDeliveryTag() << std::endl;
 
     return 0;
 }
@@ -17,15 +17,12 @@ onMessage(AMQPMessage *message, void *ctx)
 {
     std::string *msg = static_cast<std::string*>(ctx);
 
-    const char *data = message->getMessage();
+    const std::string &data = message->getMessage();
 
-    if (data) {
-        std::cout << data << std::endl;
-    }
+    std::cout << data << std::endl;
+    std::cout << std::endl;
 
     i++;
-
-    std::cout << std::endl;
 
     std::cout << *msg << " #" << i << ", tag = " << message->getDeliveryTag() << std::endl;
 
@@ -47,21 +44,34 @@ onMessage(AMQPMessage *message, void *ctx)
 int
 main()
 {
+    std::string user = "guest";
+    std::string password = "guest";
+    std::string host = "127.0.0.1";
+    std::string port = "5672";
+    std::string vhost = "/";
+    std::string queue = "amqpcpp_example_queue";
+    std::string exchange = "amq.direct";
+    std::string key = "amqpcpp_example_key";
+
+    // "user:password@host:portvhost");
+    std::string credentials = user + ":" + password + "@" +
+        host + ":" + port + vhost;
+
     try {
-        AMQP amqp("guest:guest@127.0.0.1:5672/");
+        AMQP amqp(credentials);
 
-        AMQPQueue *queue = amqp.createQueue();
+        AMQPQueue *q = amqp.createQueue();
 
-        queue->Declare("fast_check.queue", AMQP_DURABLE);
-        queue->Bind("amq.direct", "fast_check.key");
-        queue->setConsumerTag("tag_123");
+        q->Declare(queue, AMQP_DURABLE);
+        q->Bind(exchange, key);
+        q->setConsumerTag("tag_123");
 
-        std::string msg = "Message";
+        std::string msg = "AMQPCPP example message";
 
-        queue->addEvent(AMQP_MESSAGE, onMessage, &msg);
-        queue->addEvent(AMQP_CANCEL, onCancel, &msg);
+        q->addEvent(AMQP_MESSAGE, onMessage, &msg);
+        q->addEvent(AMQP_CANCEL, onCancel, &msg);
 
-        queue->Consume(AMQP_NOACK);
+        q->Consume(AMQP_NOACK);
 
     } catch (const AMQPException &e) {
         std::cerr << "Error: " << e.what() << std::endl;

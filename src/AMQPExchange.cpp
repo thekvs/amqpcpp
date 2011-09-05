@@ -11,7 +11,7 @@ AMQPExchange::AMQPExchange(amqp_connection_state_t *cnn, int channelNum)
 }
 
 AMQPExchange::AMQPExchange(amqp_connection_state_t *cnn, int channelNum,
-    std::string name)
+    const std::string &name)
 {
     this->cnn = cnn;
     this->channelNum = channelNum;
@@ -29,7 +29,7 @@ AMQPExchange::Declare()
 }
 
 void
-AMQPExchange::Declare(std::string name)
+AMQPExchange::Declare(const std::string &name)
 {
     this->parms = 0;
     this->name = name;
@@ -38,7 +38,7 @@ AMQPExchange::Declare(std::string name)
 }
 
 void
-AMQPExchange::Declare(std::string name, std::string type)
+AMQPExchange::Declare(const std::string &name, const std::string &type)
 {
     this->parms = 0;
     this->name = name;
@@ -48,7 +48,7 @@ AMQPExchange::Declare(std::string name, std::string type)
 }
 
 void
-AMQPExchange::Declare(std::string name, std::string type, short parms)
+AMQPExchange::Declare(const std::string &name, const std::string &type, short parms)
 {
     this->name = name;
     this->type = type;
@@ -113,7 +113,7 @@ AMQPExchange::Delete()
 }
 
 void
-AMQPExchange::Delete(std::string name)
+AMQPExchange::Delete(const std::string &name)
 {
     this->name = name;
 
@@ -147,7 +147,7 @@ AMQPExchange::sendDeleteCommand()
 }
 
 void
-AMQPExchange::Bind(std::string name)
+AMQPExchange::Bind(const std::string &name)
 {
     if (type != "fanout") {
         THROW_AMQP_EXC("key is NULL, it can only be used for the fanout type");
@@ -157,7 +157,7 @@ AMQPExchange::Bind(std::string name)
 }
 
 void
-AMQPExchange::Bind(std::string name, std::string key)
+AMQPExchange::Bind(const std::string &name, const std::string &key)
 {
     sendBindCommand(name.c_str(), key.c_str());
 }
@@ -195,7 +195,7 @@ AMQPExchange::sendBindCommand(const char * queue, const char * key)
 }
 
 void
-AMQPExchange::Publish(std::string message, std::string key)
+AMQPExchange::Publish(const std::string &message, const std::string &key)
 {
     sendPublishCommand(message.c_str(), key.c_str());
 }
@@ -296,15 +296,15 @@ AMQPExchange::sendPublishCommand(const char *message, const char *key)
 }
 
 void
-AMQPExchange::setHeader(std::string name, int value)
+AMQPExchange::setHeader(const std::string &name, int value)
 {
-    iHeaders.insert(std::pair<std::string, int>(std::string(name), value));
+    iHeaders.insert(iHeaders_map::value_type(name, value));
 }
 
 void
-AMQPExchange::setHeader(std::string name, std::string value)
+AMQPExchange::setHeader(const std::string &name, const std::string &value)
 {
-    sHeaders.insert(std::pair<std::string, std::string>(std::string(name), value));
+    sHeaders.insert(sHeaders_map::value_type(name, value));
 }
 
 } // namespace

@@ -1,50 +1,50 @@
 #include "AMQPcpp.h"
 
-int main (int argc, char** argv) {
+using namespace amqpcpp;
 
-	using namespace amqpcpp;
+const int count = 10;
 
-	try {
-//		AMQP amqp;
-//		AMQP amqp(AMQPDEBUG);
-	
-		AMQP amqp("123123:akalend@localhost:5673/private");		// all connect std::string
+int
+main()
+{
+    std::string user = "guest";
+    std::string password = "guest";
+    std::string host = "127.0.0.1";
+    std::string port = "5672";
+    std::string vhost = "/";
+    std::string queue = "amqpcpp_example_queue";
+    std::string exchange = "amq.direct";
+    std::string key = "amqpcpp_example_key";
 
-		AMQPExchange * ex = amqp.createExchange("e");
-		ex->Declare("e", "fanout");
+    // "user:password@host:portvhost");
+    std::string credentials = user + ":" + password + "@" +
+        host + ":" + port + vhost;
 
-		AMQPQueue * qu2 = amqp.createQueue("q2");
-		qu2->Declare();
-		qu2->Bind( "e", "");		
+    try {
+        AMQP amqp(credentials);
 
-		std::string ss = "message 1 ";
-		/* test very long message
-		ss = ss+ss+ss+ss+ss+ss+ss;
-		ss += ss+ss+ss+ss+ss+ss+ss;
-		ss += ss+ss+ss+ss+ss+ss+ss;
-		ss += ss+ss+ss+ss+ss+ss+ss;
-		ss += ss+ss+ss+ss+ss+ss+ss;
-*/
+        AMQPExchange *ex = amqp.createExchange(exchange);
+        ex->Declare(exchange, "direct", AMQP_DURABLE);
 
-		ex->setHeader("Delivery-mode", 2);
-		ex->setHeader("Content-type", "text/text");
-		ex->setHeader("Content-encoding", "UTF-8");
+        AMQPQueue *q = amqp.createQueue();
 
-		ex->Publish(  ss , ""); // publish very long message
-		
-		ex->Publish(  "message 2 " , "");
-		ex->Publish(  "message 3 " , "");
-		
-		
-		if (argc==2) {
-			AMQPQueue * qu = amqp.createQueue();			
-			qu->Cancel(   amqp_cstring_bytes(argv[1]) );
-		}												
-						
-	} catch (const AMQPException &e) {
-		std::cerr << e.what() << std::endl;
-	}
+        q->Declare(queue, AMQP_DURABLE);
+        q->Bind(exchange, key);		
 
-	return 0;
+        std::string ss = "This is a test message";
 
+        ex->setHeader("Delivery-mode", 2);
+        ex->setHeader("Content-type", "text/text");
+        ex->setHeader("Content-encoding", "UTF-8");
+
+        for (int i = 0; i < count; i++) {
+            ex->Publish(ss , key);
+            sleep(1);
+        }
+
+    } catch (const AMQPException &e) {
+        std::cerr << e.what() << std::endl;
+    }
+
+    return 0;
 }
