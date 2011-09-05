@@ -85,7 +85,7 @@ class AMQPMessage {
 public:
 
     AMQPMessage(AMQPQueue *queue);
-    ~AMQPMessage();
+    virtual ~AMQPMessage();
 
     void setMessage(const char *data, size_t size);
     const std::string& getMessage() const;
@@ -139,7 +139,7 @@ private:
 class AMQPBase {
 public:
 
-    ~AMQPBase();
+    virtual ~AMQPBase();
 
     int getChannelNum();
     void setParam(short param);
@@ -172,6 +172,8 @@ public:
 
     AMQPQueue(amqp_connection_state_t *cnn, int channelNum);
     AMQPQueue(amqp_connection_state_t *cnn, int channelNum, std::string name);
+
+    virtual ~AMQPQueue();
 
     void Declare();
     void Declare(const std::string &name);
@@ -211,8 +213,6 @@ public:
     amqp_bytes_t getConsumerTag();
 
     void addEvent(AMQPEvents_e eventType, AMQPEventFunc func, void *ctx);
-
-    ~AMQPQueue();
 
 protected:
 
@@ -264,6 +264,8 @@ public:
     AMQPExchange(amqp_connection_state_t *cnn, int channelNum,
         const std::string &name);
 
+    virtual ~AMQPExchange() {};
+
     void Declare();
     void Declare(const std::string &name);
     void Declare(const std::string &name, const std::string &type);
@@ -312,6 +314,7 @@ public:
 
     AMQP();
     AMQP(const std::string &cnnStr);
+    
     ~AMQP();
 
     AMQPExchange* createExchange();
