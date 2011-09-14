@@ -35,8 +35,8 @@ AMQP::~AMQP()
         }
     }
 
+    amqp_connection_close(cnn, AMQP_REPLY_SUCCESS);
     amqp_destroy_connection(cnn);
-    close(sockfd);
 };
 
 void
@@ -211,8 +211,8 @@ AMQPExchange*
 AMQP::createExchange(const std::string &name)
 {
     channelNumber++;
-    AMQPExchange *exchange = new AMQPExchange(&cnn,channelNumber,name);
-    channels.push_back(dynamic_cast<AMQPBase*>(exchange));
+    AMQPExchange *exchange = new AMQPExchange(&cnn, channelNumber, name);
+    channels.push_back(exchange);
 
     return exchange;
 }
@@ -221,8 +221,8 @@ AMQPQueue*
 AMQP::createQueue()
 {
     channelNumber++;
-    AMQPQueue *queue = new AMQPQueue(&cnn,channelNumber);
-    channels.push_back(dynamic_cast<AMQPBase*>(queue));
+    AMQPQueue *queue = new AMQPQueue(&cnn, channelNumber);
+    channels.push_back(queue);
 
     return queue;
 }
@@ -231,8 +231,8 @@ AMQPQueue*
 AMQP::createQueue(const std::string &name)
 {
     channelNumber++;
-    AMQPQueue *queue = new AMQPQueue(&cnn,channelNumber,name);
-    channels.push_back(dynamic_cast<AMQPBase*>(queue));
+    AMQPQueue *queue = new AMQPQueue(&cnn, channelNumber, name);
+    channels.push_back(queue);
 
     return queue;
 }
