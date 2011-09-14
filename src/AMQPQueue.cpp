@@ -377,9 +377,7 @@ AMQPQueue::sendGetCommand()
         }
 
         if (frame.frame_type == AMQP_FRAME_BODY) {
-
             frame_len = frame.payload.body_fragment.len;
-
             start = static_cast<char*>(frame.payload.body_fragment.bytes);
             end = static_cast<char*>(frame.payload.body_fragment.bytes) + frame_len;
 

@@ -38,7 +38,7 @@ main()
         ex->setHeader("Content-encoding", "UTF-8");
 
         for (int i = 0; i < count; i++) {
-            ex->Publish(ss , key);
+            ex->Publish(ss, key);
             sleep(1);
         }
 
