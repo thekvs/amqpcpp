@@ -4,7 +4,7 @@ namespace amqpcpp {
 
 AMQPBase::~AMQPBase()
 {
-    this->closeChannel();
+    closeChannel();
 }
 
 void AMQPBase::checkReply(amqp_rpc_reply_t *res)
@@ -40,6 +40,13 @@ void AMQPBase::closeChannel()
 {
     if (opened) {
         amqp_channel_close(*cnn, channelNum, AMQP_REPLY_SUCCESS);
+        amqp_rpc_reply_t res = amqp_get_rpc_reply(*cnn);
+
+        if (res.reply_type != AMQP_RESPONSE_NORMAL) {
+            THROW_AMQP_EXC(&res);
+        }
+
+        opened = 0;
     }
 }
 
