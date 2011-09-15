@@ -102,8 +102,7 @@ AMQPQueue::sendDeclareCommand()
 
     amqp_method_number_t method_ok = AMQP_QUEUE_DECLARE_OK_METHOD;
     amqp_rpc_reply_t res = amqp_simple_rpc(*cnn, channelNum, AMQP_QUEUE_DECLARE_METHOD, &method_ok, &s);
-
-    AMQPBase::checkReply(&res);
+    THROW_AMQP_EXC_IF_FAILED(res, "declare queue");
 
     amqp_release_buffers(*cnn);
 
@@ -163,8 +162,7 @@ AMQPQueue::sendDeleteCommand()
     amqp_method_number_t method_ok = AMQP_QUEUE_DELETE_OK_METHOD;
 
     amqp_rpc_reply_t res = amqp_simple_rpc(*cnn, channelNum, AMQP_QUEUE_DELETE_METHOD, &method_ok, &s);
-
-    AMQPBase::checkReply(&res);
+    THROW_AMQP_EXC_IF_FAILED(res, "delete queue");
 }
 
 // Purge command /* 50, 30; 3276830 */
@@ -201,8 +199,7 @@ AMQPQueue::sendPurgeCommand()
     amqp_method_number_t method_ok = AMQP_QUEUE_PURGE_OK_METHOD;
 
     amqp_rpc_reply_t res = amqp_simple_rpc(*cnn, channelNum, AMQP_QUEUE_PURGE_METHOD, &method_ok , &s);
-
-    AMQPBase::checkReply(&res);
+    THROW_AMQP_EXC_IF_FAILED(res, "purge queue");
 }
 
 // Bind command /* 50, 20; 3276820 */
@@ -232,8 +229,7 @@ AMQPQueue::sendBindCommand(const char *exchange, const char *key)
 
     amqp_method_number_t method_ok = AMQP_QUEUE_BIND_OK_METHOD;
     amqp_rpc_reply_t res = amqp_simple_rpc(*cnn, channelNum, AMQP_QUEUE_BIND_METHOD, &method_ok, &s);
-
-    AMQPBase::checkReply(&res);
+    THROW_AMQP_EXC_IF_FAILED(res, "bind queue");
 }
 
 
@@ -264,8 +260,7 @@ AMQPQueue::sendUnBindCommand(const char *exchange, const char *key)
 
     amqp_method_number_t method_ok = AMQP_QUEUE_UNBIND_OK_METHOD;
     amqp_rpc_reply_t res = amqp_simple_rpc(*cnn, channelNum, AMQP_QUEUE_UNBIND_METHOD, &method_ok, &s);
-
-    AMQPBase::checkReply(&res);
+    THROW_AMQP_EXC_IF_FAILED(res, "unbind queue");
 }
 
 
@@ -433,7 +428,6 @@ AMQPQueue::setConsumerTag(const std::string &consumer_tag)
 void
 AMQPQueue::sendConsumeCommand()
 {
-    amqp_basic_consume_ok_t *consume_ok;
     amqp_bytes_t queueByte = amqp_cstring_bytes(name.c_str());
 
     /*
@@ -463,20 +457,10 @@ AMQPQueue::sendConsumeCommand()
     s.exclusive = (AMQP_EXCLUSIVE & parms)  ? 1:0;
 
     amqp_rpc_reply_t res = amqp_simple_rpc(*cnn, channelNum, AMQP_BASIC_CONSUME_METHOD, replies, &s);
+    THROW_AMQP_EXC_IF_FAILED(res, "consume method");
 
-    if (res.reply_type == AMQP_RESPONSE_NONE) {
-        THROW_AMQP_EXC("error in the Consume command, response is none");
-    } else if (res.reply.id == AMQP_CHANNEL_CLOSE_METHOD) {
-        amqp_channel_close_t *err = (amqp_channel_close_t*)res.reply.decoded;
-        opened = 0;
-        THROW_AMQP_EXC("server error %u, message '%s' class=%d method=%u ",
-            err->reply_code, (char*)err->reply_text.bytes, (int)err->class_id,
-            err->method_id);
-    } else if (res.reply.id == AMQP_BASIC_CANCEL_OK_METHOD) {
-        return;//cancel ok
-    } else if (res.reply.id == AMQP_BASIC_CONSUME_OK_METHOD) {
-        consume_ok = (amqp_basic_consume_ok_t*) res.reply.decoded;
-        //printf("****** consume Ok c_tag=%s", consume_ok->consumer_tag.bytes );
+    if (res.reply.id == AMQP_BASIC_CANCEL_OK_METHOD) {
+        return;
     }
 
     std::auto_ptr<AMQPMessage> message(new AMQPMessage(this));

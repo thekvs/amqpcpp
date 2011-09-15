@@ -3,42 +3,6 @@
 namespace amqpcpp {
 
 AMQPException::AMQPException(const char *file, int line,
-    amqp_rpc_reply_t *res)
-{
-    if (res->reply_type == AMQP_RESPONSE_LIBRARY_EXCEPTION) {
-        snprintf(buff, sizeof(buff), "%s",
-            res->library_error ? strerror(res->library_error) : "end-of-stream");
-    } else {
-        if (res->reply_type == AMQP_RESPONSE_SERVER_EXCEPTION) {
-            if (res->reply.id == AMQP_CONNECTION_CLOSE_METHOD) {
-                amqp_connection_close_t *m =
-                    (amqp_connection_close_t *)res->reply.decoded;
-                snprintf(
-                    buff, sizeof(buff),
-                    "server connection error %d, message: %.*s",
-                    m->reply_code, (int)m->reply_text.len,
-                    (char *)m->reply_text.bytes
-                );
-            } else if (res->reply.id == AMQP_CHANNEL_CLOSE_METHOD) {
-                amqp_channel_close_t *n =
-                    (amqp_channel_close_t *)res->reply.decoded;
-                snprintf(
-                    buff, sizeof(buff),
-                    "server channel error %d, message: %.*s class=%d method=%d",
-                    n->reply_code, (int)n->reply_text.len, (char *)n->reply_text.bytes,
-                    (int)n->class_id, n->method_id
-                );
-            } else {
-                snprintf(buff, sizeof(buff),
-                    "unknown server error, method id 0x%08X", res->reply.id);
-            }
-        }
-    }
-
-    append_position(file, line);
-}
-
-AMQPException::AMQPException(const char *file, int line,
     const char *fmt, ...): msg(NULL)
 {
     va_list ap;

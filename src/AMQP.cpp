@@ -35,8 +35,13 @@ AMQP::~AMQP()
         }
     }
 
-    amqp_connection_close(cnn, AMQP_REPLY_SUCCESS);
-    amqp_destroy_connection(cnn);
+    amqp_rpc_reply_t res = amqp_connection_close(cnn, AMQP_REPLY_SUCCESS);
+    THROW_AMQP_EXC_IF_FAILED(res, "close connection");
+
+    int rc = amqp_destroy_connection(cnn);
+    if (rc < 0) {
+        THROW_AMQP_EXC("error while destroying connection");
+    }
 };
 
 void
@@ -190,11 +195,7 @@ AMQP::login()
 {
     amqp_rpc_reply_t res = amqp_login(cnn, vhost.c_str(), 0, FRAME_MAX, 0,
         AMQP_SASL_METHOD_PLAIN, user.c_str(), password.c_str());
-
-    if (res.reply_type != AMQP_RESPONSE_NORMAL) {
-        THROW_AMQP_EXC("login failed: vhost=%s, user=%s, password=%s",
-            vhost.c_str(), user.c_str(), password.c_str());
-    }
+    THROW_AMQP_EXC_IF_FAILED(res, "login command");
 }
 
 AMQPExchange*
@@ -202,7 +203,7 @@ AMQP::createExchange()
 {
     channelNumber++;
     AMQPExchange *exchange = new AMQPExchange(&cnn, channelNumber);
-    channels.push_back(dynamic_cast<AMQPBase*>(exchange));
+    channels.push_back(exchange);
 
     return exchange;
 }

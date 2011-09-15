@@ -7,16 +7,7 @@ AMQPBase::~AMQPBase()
     closeChannel();
 }
 
-void AMQPBase::checkReply(amqp_rpc_reply_t *res)
-{
-    checkClosed(res);
-
-    if (res->reply_type != AMQP_RESPONSE_NORMAL) {
-        THROW_AMQP_EXC(res);
-    }
-}
-
-void AMQPBase::checkClosed(amqp_rpc_reply_t * res)
+void AMQPBase::checkClosed(amqp_rpc_reply_t *res)
 {
     if (res->reply_type == AMQP_RESPONSE_SERVER_EXCEPTION &&
             res->reply.id == AMQP_CHANNEL_CLOSE_METHOD) {
@@ -28,11 +19,7 @@ void AMQPBase::openChannel()
 {
     amqp_channel_open(*cnn, channelNum);
     amqp_rpc_reply_t res = amqp_get_rpc_reply(*cnn);
-
-    if (res.reply_type != AMQP_RESPONSE_NORMAL) {
-        THROW_AMQP_EXC(&res);
-    }
-
+    THROW_AMQP_EXC_IF_FAILED(res, "open channel");
     opened = 1;
 }
 
@@ -41,11 +28,7 @@ void AMQPBase::closeChannel()
     if (opened) {
         amqp_channel_close(*cnn, channelNum, AMQP_REPLY_SUCCESS);
         amqp_rpc_reply_t res = amqp_get_rpc_reply(*cnn);
-
-        if (res.reply_type != AMQP_RESPONSE_NORMAL) {
-            THROW_AMQP_EXC(&res);
-        }
-
+        THROW_AMQP_EXC_IF_FAILED(res, "close channel");
         opened = 0;
     }
 }

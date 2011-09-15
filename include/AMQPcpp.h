@@ -51,8 +51,6 @@ enum AMQPEvents_e {
 class AMQPException: public std::exception {
 public:
 
-
-    AMQPException(const char *file, int line, amqp_rpc_reply_t *res);
     AMQPException(const char *file, int line, const char *fmt, ...);
 
     virtual ~AMQPException() throw() {
@@ -75,10 +73,47 @@ private:
 
 #define THROW_AMQP_EXC(args...)  (throw AMQPException(__FILE__, __LINE__, args))
 
-#define THROW_AMQP_EXC_IF_FAILED(status, args...) do {  \
-    if (!(status)) {                                    \
-        throw AMQPException(__FILE__, __LINE__, args);  \
-    }                                                   \
+#define THROW_AMQP_EXC_IF_FAILED(status, context) do {                        \
+    switch (status.reply_type) {                                              \
+    case AMQP_RESPONSE_NORMAL:                                                \
+        break;                                                                \
+    case AMQP_RESPONSE_NONE:                                                  \
+        throw AMQPException(__FILE__, __LINE__,                               \
+            "%s: missing RPC reply type!", context);                          \
+    case AMQP_RESPONSE_LIBRARY_EXCEPTION:                                     \
+        throw AMQPException(__FILE__, __LINE__,                               \
+            "%s: %s", context, amqp_error_string(status.library_error));      \
+    case AMQP_RESPONSE_SERVER_EXCEPTION:                                      \
+        switch (status.reply.id) {                                            \
+        case AMQP_CONNECTION_CLOSE_METHOD:                                    \
+            {                                                                 \
+                 amqp_connection_close_t *m =                                 \
+                     static_cast<amqp_connection_close_t*>(                   \
+                         status.reply.decoded);                               \
+                 throw AMQPException(__FILE__, __LINE__,                      \
+                     "%s: server connection error %d, message: %.*s",         \
+                     context,                                                 \
+                     m->reply_code,                                           \
+                     static_cast<int>(m->reply_text.len),                     \
+                     static_cast<char*>(m->reply_text.bytes));                \
+            }                                                                 \
+        case AMQP_CHANNEL_CLOSE_METHOD:                                       \
+            {                                                                 \
+                 amqp_channel_close_t *m =                                    \
+                     static_cast<amqp_channel_close_t*>(status.reply.decoded);\
+                 throw AMQPException(__FILE__, __LINE__,                      \
+                     "%s: server channel error %d, message: %.*s",            \
+                     context,                                                 \
+                     m->reply_code,                                           \
+                     static_cast<int>(m->reply_text.len),                     \
+                     static_cast<char*>(m->reply_text.bytes));                \
+            }                                                                 \
+        default:                                                              \
+            throw AMQPException(__FILE__, __LINE__,                           \
+                "%s: unknown server error, method id 0x%08X",                 \
+                context, status.reply.id);                                    \
+        }                                                                     \
+    }                                                                         \
 } while(0)
 
 class AMQPMessage {
@@ -160,7 +195,6 @@ protected:
     AMQPMessage *pmessage;
     short        opened;
 
-    void checkReply(amqp_rpc_reply_t *res);
     void checkClosed(amqp_rpc_reply_t *res);
     void openChannel();
 };
@@ -305,7 +339,6 @@ private:
     void sendBindCommand(const char *queueName, const char *key);
     void sendPublishCommand(const char *message, const char *key);
     void sendCommand();
-    void checkReply(amqp_rpc_reply_t *res);
     void checkClosed(amqp_rpc_reply_t *res);
 };
 

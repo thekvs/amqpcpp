@@ -76,8 +76,7 @@ AMQPExchange::sendDeclareCommand()
     amqp_exchange_declare(*cnn, (amqp_channel_t)1, exchange, exchangetype, passive, durable, args);
 
     amqp_rpc_reply_t res = amqp_get_rpc_reply(*cnn);
-
-    AMQPBase::checkReply(&res);
+    THROW_AMQP_EXC_IF_FAILED(res, "exchange declare command");
 }
 
 void
@@ -143,7 +142,7 @@ AMQPExchange::sendDeleteCommand()
         &s
         );
 
-    AMQPBase::checkReply(&res);
+    THROW_AMQP_EXC_IF_FAILED(res, "exchange delete command");
 }
 
 void
@@ -191,7 +190,7 @@ AMQPExchange::sendBindCommand(const char * queue, const char * key)
         &s
         );
 
-    AMQPBase::checkReply(&res);
+    THROW_AMQP_EXC_IF_FAILED(res, "exchange bind command");
 }
 
 void
