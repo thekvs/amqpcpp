@@ -12,6 +12,9 @@ INCLUDE(CheckIncludeFile)
 INCLUDE(CheckCXXCompilerFlag)
 
 FIND_PACKAGE(LibRabbitMQ)
+IF(NOT RABBITMQ_FOUND)
+    MESSAGE(FATAL_ERROR "Cannot find rabbitmq-c, aborting")
+ENDIF(NOT RABBITMQ_FOUND)
 
 INCLUDE_DIRECTORIES(${amqpcpp_SOURCE_DIR}/)
 INCLUDE_DIRECTORIES(${amqpcpp_SOURCE_DIR}/include/)
