@@ -22,6 +22,20 @@ AMQP::AMQP(const std::string &cnnStr)
     AMQP::connect();
 };
 
+AMQP::AMQP(const std::string &user, const std::string &password, const std::string &host,
+    int port, const std::string &vhost)
+{
+    init();
+
+    this->user = user;
+    this->password = password;
+    this->host = host;
+    this->port = port;
+    this->vhost = vhost;
+
+    connect();
+}
+
 AMQP::~AMQP()
 {
     if (channels.size()) {

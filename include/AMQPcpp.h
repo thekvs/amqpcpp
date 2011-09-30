@@ -347,6 +347,8 @@ public:
 
     AMQP();
     AMQP(const std::string &cnnStr);
+    AMQP(const std::string &user, const std::string &password, const std::string &host,
+        int port, const std::string &vhost);
     
     ~AMQP();
 
