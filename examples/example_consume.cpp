@@ -53,8 +53,8 @@ main()
     std::string exchange = "amq.direct";
     std::string key = "amqpcpp_example_key";
 
-    // "user:password@host:portvhost");
-    std::string credentials = user + ":" + password + "@" +
+    // "password:user@host:portvhost");
+    std::string credentials = password + ":" + user + "@" +
         host + ":" + port + vhost;
 
     try {
