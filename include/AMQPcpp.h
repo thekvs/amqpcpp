@@ -120,7 +120,7 @@ class AMQPMessage {
 public:
 
     AMQPMessage(AMQPQueue *queue);
-    virtual ~AMQPMessage();
+    ~AMQPMessage();
 
     void setMessage(const char *data, size_t size);
     const std::string& getMessage() const;
@@ -174,6 +174,14 @@ private:
 class AMQPBase {
 public:
 
+    AMQPBase():
+        parms(0),
+        channelNum(0),
+        pmessage(NULL),
+        opened(0)
+    {
+    }
+    
     virtual ~AMQPBase();
 
     int getChannelNum();

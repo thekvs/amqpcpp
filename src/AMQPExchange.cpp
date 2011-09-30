@@ -2,7 +2,7 @@
 
 namespace amqpcpp {
 
-AMQPExchange::AMQPExchange(amqp_connection_state_t *cnn, int channelNum)
+AMQPExchange::AMQPExchange(amqp_connection_state_t *cnn, int channelNum): AMQPBase()
 {
     this->cnn = cnn;
     this->channelNum = channelNum;
@@ -11,7 +11,7 @@ AMQPExchange::AMQPExchange(amqp_connection_state_t *cnn, int channelNum)
 }
 
 AMQPExchange::AMQPExchange(amqp_connection_state_t *cnn, int channelNum,
-    const std::string &name)
+    const std::string &name): AMQPBase()
 {
     this->cnn = cnn;
     this->channelNum = channelNum;
@@ -162,7 +162,7 @@ AMQPExchange::Bind(const std::string &name, const std::string &key)
 }
 
 void
-AMQPExchange::sendBindCommand(const char * queue, const char * key)
+AMQPExchange::sendBindCommand(const char *queue, const char *key)
 {
 
     amqp_bytes_t queueByte = amqp_cstring_bytes(queue);

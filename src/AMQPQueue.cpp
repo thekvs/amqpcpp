@@ -2,7 +2,7 @@
 
 namespace amqpcpp {
 
-AMQPQueue::AMQPQueue(amqp_connection_state_t * cnn, int channelNum)
+AMQPQueue::AMQPQueue(amqp_connection_state_t *cnn, int channelNum): AMQPBase()
 {
     this->cnn = cnn;
     this->channelNum = channelNum;
@@ -10,12 +10,11 @@ AMQPQueue::AMQPQueue(amqp_connection_state_t * cnn, int channelNum)
     consumer_tag.bytes = NULL;
     consumer_tag.len = 0;
     delivery_tag = 0;
-    pmessage = NULL;
 
     openChannel();
 }
 
-AMQPQueue::AMQPQueue(amqp_connection_state_t * cnn, int channelNum, std::string name)
+AMQPQueue::AMQPQueue(amqp_connection_state_t *cnn, int channelNum, std::string name): AMQPBase()
 {
     this->cnn = cnn;
     this->channelNum = channelNum;
@@ -24,7 +23,6 @@ AMQPQueue::AMQPQueue(amqp_connection_state_t * cnn, int channelNum, std::string 
     consumer_tag.bytes = NULL;
     consumer_tag.len = 0;
     delivery_tag = 0;
-    pmessage = NULL;
 
     openChannel();
 }
