@@ -158,6 +158,8 @@ public:
 
 private:
 
+    AMQPMessage() {}
+
     typedef std::map<std::string, std::string> headers_map;
 
     std::string data;

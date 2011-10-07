@@ -461,8 +461,11 @@ AMQPQueue::sendConsumeCommand()
         return;
     }
 
-    std::auto_ptr<AMQPMessage> message(new AMQPMessage(this));
-    pmessage = message.get();
+    if (pmessage) {
+        delete pmessage;
+    }
+    
+    pmessage = new AMQPMessage(this);
 
     amqp_frame_t frame;
 
