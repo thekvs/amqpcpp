@@ -2,10 +2,8 @@
 
 using namespace amqpcpp;
 
-const int count = 10;
-
 int
-main()
+main(int argc, char **argv)
 {
     std::string user = "guest";
     std::string password = "guest";
@@ -15,6 +13,45 @@ main()
     std::string queue = "amqpcpp_example_queue";
     std::string exchange = "amq.direct";
     std::string key = "amqpcpp_example_key";
+
+    int count = 10;
+    int pause = 1;
+    int opt;
+
+    while ((opt = getopt(argc, argv, "u:p:h:P:v:q:e:k:c:s:")) != -1) {
+        switch (opt) {
+            case 'u':
+                user = optarg;
+                break;
+            case 'p':
+                password = optarg;
+                break;
+            case 'h':
+                host = optarg;
+                break;
+            case 'P':
+                port = optarg;
+                break;
+            case 'v':
+                vhost = optarg;
+                break;
+            case 'q':
+                queue = optarg;
+                break;
+            case 'e':
+                exchange = optarg;
+                break;
+            case 'k':
+                key = optarg;
+                break;
+            case 'c':
+                count = atoi(optarg);
+                break;
+            case 's':
+                pause = atoi(optarg);
+                break;
+        }
+    }
 
     // "password:user@host:portvhost");
     std::string credentials = password + ":" + user + "@" +
@@ -39,7 +76,7 @@ main()
 
         for (int i = 0; i < count; i++) {
             ex->Publish(ss, key);
-            sleep(1);
+            sleep(pause);
         }
 
     } catch (const AMQPException &e) {

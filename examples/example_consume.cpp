@@ -7,8 +7,12 @@ static int i;
 int
 onCancel(AMQPMessage *message, void*)
 {
-    std::cout << "cancel tag=" << message->getDeliveryTag() << std::endl;
+    std::cout << "onCancel method called" << std::endl;
 
+    if (message) {
+        std::cout << "Cancel tag=" << message->getDeliveryTag() << std::endl;
+    }
+    
     return 0;
 }
 
@@ -42,7 +46,7 @@ onMessage(AMQPMessage *message, void *ctx)
 };
 
 int
-main()
+main(int argc, char **argv)
 {
     std::string user = "guest";
     std::string password = "guest";
@@ -52,6 +56,37 @@ main()
     std::string queue = "amqpcpp_example_queue";
     std::string exchange = "amq.direct";
     std::string key = "amqpcpp_example_key";
+
+    int opt;
+
+    while ((opt = getopt(argc, argv, "u:p:h:P:v:q:e:k:")) != -1) {
+        switch (opt) {
+            case 'u':
+                user = optarg;
+                break;
+            case 'p':
+                password = optarg;
+                break;
+            case 'h':
+                host = optarg;
+                break;
+            case 'P':
+                port = optarg;
+                break;
+            case 'v':
+                vhost = optarg;
+                break;
+            case 'q':
+                queue = optarg;
+                break;
+            case 'e':
+                exchange = optarg;
+                break;
+            case 'k':
+                key = optarg;
+                break;
+        }
+    }
 
     // "password:user@host:portvhost");
     std::string credentials = password + ":" + user + "@" +
