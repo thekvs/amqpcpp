@@ -239,7 +239,6 @@ public:
     void Consume();
     void Consume(short param);
 
-    void Cancel(amqp_bytes_t consumer_tag);
     void Cancel(const std::string &consumer_tag);
 
     void Ack();
@@ -254,7 +253,7 @@ public:
     }
 
     void setConsumerTag(const std::string &consumer_tag);
-    amqp_bytes_t getConsumerTag();
+    std::string getConsumerTag();
 
     void addEvent(AMQPEvents_e eventType, AMQPEventFunc func, void *ctx);
 
@@ -281,7 +280,7 @@ protected:
     typedef std::map<AMQPEvents_e, AMQPCallback> events_map;
 
     events_map   events;
-    amqp_bytes_t consumer_tag;
+    std::string  consumer_tag;
     
     uint32_t     delivery_tag;
     uint32_t     count;
@@ -299,7 +298,6 @@ private:
     void sendAckCommand();
     void setHeaders(amqp_basic_properties_t *p);
 };
-
 
 class AMQPExchange: public AMQPBase {
 public:
@@ -385,7 +383,7 @@ private:
 
     AMQPExchange *exchange;
 
-    amqp_connection_state_t  cnn;
+    amqp_connection_state_t cnn;
     
     std::vector<AMQPBase*> channels;
 

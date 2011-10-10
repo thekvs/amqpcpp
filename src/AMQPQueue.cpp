@@ -7,8 +7,6 @@ AMQPQueue::AMQPQueue(amqp_connection_state_t *cnn, int channelNum): AMQPBase()
     this->cnn = cnn;
     this->channelNum = channelNum;
 
-    consumer_tag.bytes = NULL;
-    consumer_tag.len = 0;
     delivery_tag = 0;
 
     openChannel();
@@ -20,8 +18,6 @@ AMQPQueue::AMQPQueue(amqp_connection_state_t *cnn, int channelNum, std::string n
     this->channelNum = channelNum;
     this->name = name;
 
-    consumer_tag.bytes = NULL;
-    consumer_tag.len = 0;
     delivery_tag = 0;
 
     openChannel();
@@ -420,7 +416,7 @@ AMQPQueue::Consume(short parms)
 void
 AMQPQueue::setConsumerTag(const std::string &consumer_tag)
 {
-    this->consumer_tag = amqp_cstring_bytes(consumer_tag.c_str());
+    this->consumer_tag = consumer_tag;
 }
 
 void
@@ -449,7 +445,8 @@ AMQPQueue::sendConsumeCommand()
     memset(&s, 0, sizeof(s));
     s.ticket = channelNum;
     s.queue = queueByte;
-    s.consumer_tag = consumer_tag;
+    s.consumer_tag.bytes = (void*)(consumer_tag.c_str());
+    s.consumer_tag.len = consumer_tag.size();
     s.no_local = (AMQP_NOLOCAL & parms)     ? 1:0;
     s.no_ack = (AMQP_NOACK & parms)         ? 1:0;
     s.exclusive = (AMQP_EXCLUSIVE & parms)  ? 1:0;
@@ -633,16 +630,7 @@ AMQPQueue::setHeaders(amqp_basic_properties_t *p)
 void
 AMQPQueue::Cancel(const std::string &consumer_tag)
 {
-    this->consumer_tag = amqp_cstring_bytes(consumer_tag.c_str());
-
-    sendCancelCommand();
-}
-
-void
-AMQPQueue::Cancel(amqp_bytes_t consumer_tag)
-{
-    this->consumer_tag.len = consumer_tag.len;
-    this->consumer_tag.bytes = consumer_tag.bytes;
+    this->consumer_tag = consumer_tag;
 
     sendCancelCommand();
 }
@@ -653,13 +641,14 @@ AMQPQueue::sendCancelCommand()
     amqp_basic_cancel_t s;
 
     memset(&s, 0, sizeof(s));
-    s.consumer_tag = consumer_tag;
+    s.consumer_tag.bytes = (void*)consumer_tag.c_str();
+    s.consumer_tag.len = consumer_tag.size();
     s.nowait = (AMQP_NOWAIT & parms) ? 1:0;
 
     amqp_send_method(*cnn, channelNum, AMQP_BASIC_CANCEL_METHOD, &s);
 }
 
-amqp_bytes_t
+std::string
 AMQPQueue::getConsumerTag()
 {
     return consumer_tag;
