@@ -1,8 +1,18 @@
+#include <signal.h>
+#include <errno.h>
+
 #include "AMQPcpp.h"
 
 using namespace amqpcpp;
 
 static int i;
+static AMQPQueue *q;
+
+void
+signal_handler(int)
+{
+    q->Cancel(q->getConsumerTag());
+}
 
 int
 onCancel(AMQPMessage *message, void*)
@@ -28,16 +38,23 @@ onMessage(AMQPMessage *message, void *ctx)
 
     i++;
 
-    std::cout << *msg << " #" << i << ", tag = " << message->getDeliveryTag() << std::endl;
+    uint32_t delivery_tag = message->getDeliveryTag();
+    AMQPQueue *queue = message->getQueue();
+
+    std::cout << *msg << " #" << i << ", tag = " << delivery_tag << std::endl;
 
     std::cout << "Content-type: " << message->getHeader("Content-type") << std::endl;
     std::cout << "Encoding: "<< message->getHeader("Content-encoding") << std::endl;
     std::cout << "Delivery-mode: " << message->getHeader("Delivery-mode") << std::endl;
+
     std::cout << "========================" << std::endl;
+
+    queue->Ack(delivery_tag);
 
     /*
     if (i > 10) {
-        AMQPQueue * q = message->getQueue();
+        AMQPQueue *q = message->getQueue();
+        std::cout << "Consumer tag: " << message->getConsumerTag() << std::endl;
         q->Cancel(message->getConsumerTag());
     }
     */
@@ -95,7 +112,7 @@ main(int argc, char **argv)
     try {
         AMQP amqp(credentials);
 
-        AMQPQueue *q = amqp.createQueue();
+        q = amqp.createQueue();
 
         q->Declare(queue, AMQP_DURABLE);
         q->Bind(exchange, key);
@@ -106,7 +123,9 @@ main(int argc, char **argv)
         q->addEvent(AMQP_MESSAGE, onMessage, &msg);
         q->addEvent(AMQP_CANCEL, onCancel, &msg);
 
-        q->Consume(AMQP_NOACK);
+        signal(SIGINT, signal_handler);
+        
+        q->Consume();
 
     } catch (const AMQPException &e) {
         std::cerr << "Error: " << e.what() << std::endl;
